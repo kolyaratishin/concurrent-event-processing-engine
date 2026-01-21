@@ -4,6 +4,7 @@ import com.concurrent.engine.events.Event;
 import com.concurrent.engine.events.EventHandler;
 import com.concurrent.engine.events.EventType;
 import com.concurrent.engine.manager.EventManager;
+import com.concurrent.engine.metrics.EventEngineMetrics;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,7 +43,7 @@ public class EventManagerIntegrationTest {
 
         // ---- Черга + менеджер ----
         EventQueue queue = new PriorityEventQueue();
-        EventManager manager = new EventManager(queue, workerCount, "integration-pool");
+        EventManager manager = new EventManager(queue, workerCount, "integration-pool", new EventEngineMetrics());
 
         // ---- Хендлери, які рахують виклики ----
         CountingHandler logHandler = new CountingHandler();

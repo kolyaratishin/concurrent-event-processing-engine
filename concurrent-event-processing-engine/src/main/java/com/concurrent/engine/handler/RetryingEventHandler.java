@@ -2,18 +2,21 @@ package com.concurrent.engine.handler;
 
 import com.concurrent.engine.events.Event;
 import com.concurrent.engine.events.EventHandler;
+import com.concurrent.engine.metrics.EventEngineMetrics;
 
 public class RetryingEventHandler implements EventHandler {
     private final EventHandler delegate;         // справжній хендлер
     private final DeadLetterHandler deadLetterHandler;
     private final int maxAttempts;              // скільки разів пробувати
     private final long delayMillis;             // пауза між спробами
+    private final EventEngineMetrics metrics;
 
-    public RetryingEventHandler(EventHandler delegate, DeadLetterHandler deadLetterHandler, int maxAttempts, long delayMillis) {
+    public RetryingEventHandler(EventHandler delegate, DeadLetterHandler deadLetterHandler, int maxAttempts, long delayMillis, EventEngineMetrics metrics) {
         this.delegate = delegate;
         this.deadLetterHandler = deadLetterHandler;
         this.maxAttempts = maxAttempts;
         this.delayMillis = delayMillis;
+        this.metrics = metrics;
     }
 
 
@@ -26,6 +29,7 @@ public class RetryingEventHandler implements EventHandler {
                 return; // успішно – виходимо
             } catch (Exception e) {
                 attempt++;
+                metrics.recordRetry();
                 if (maxAttemptsExceeded(event, attempt)) return;
                 if (successfulAfterSleep(event)) return;
             }

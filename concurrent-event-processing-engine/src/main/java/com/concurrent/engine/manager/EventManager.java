@@ -4,6 +4,8 @@ import com.concurrent.engine.events.DispatchingEventHandler;
 import com.concurrent.engine.events.Event;
 import com.concurrent.engine.events.EventHandler;
 import com.concurrent.engine.events.EventType;
+import com.concurrent.engine.metrics.EventEngineMetrics;
+import com.concurrent.engine.metrics.EventEngineMetricsSnapshot;
 import com.concurrent.engine.queue.EventQueue;
 import com.concurrent.engine.worker.EventWorkerPool;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,13 +15,15 @@ public class EventManager {
     private final DispatchingEventHandler dispatchingHandler;
     private final EventWorkerPool workerPool;
     private final AtomicBoolean running;
+    private final EventEngineMetrics metrics;
 
-    public EventManager(EventQueue eventQueue, int workerCount, String poolName)
+    public EventManager(EventQueue eventQueue, int workerCount, String poolName, EventEngineMetrics metrics)
     {
         this.eventQueue = eventQueue;
         this.dispatchingHandler = new DispatchingEventHandler();
-        this.workerPool = new EventWorkerPool(workerCount, eventQueue, dispatchingHandler, poolName);
+        this.workerPool = new EventWorkerPool(workerCount, eventQueue, dispatchingHandler, poolName, metrics);
         this.running = new AtomicBoolean(false);
+        this.metrics = metrics;
     }
 
     public synchronized void start()
@@ -53,4 +57,9 @@ public class EventManager {
         Event event = Event.of(type, payload);
         publish(event);
     }
+
+    public EventEngineMetricsSnapshot getMetrics() {
+        return metrics.snapshot(eventQueue);
+    }
+
 }

@@ -5,6 +5,7 @@ import com.concurrent.engine.events.EventHandler;
 import com.concurrent.engine.events.EventType;
 import com.concurrent.engine.handler.DeadLetterHandler;
 import com.concurrent.engine.handler.RetryingEventHandler;
+import com.concurrent.engine.metrics.EventEngineMetrics;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +46,7 @@ class RetryingEventHandlerTest {
         private final AtomicInteger dlqCount = new AtomicInteger();
 
         public CountingDeadLetterHandler(EventQueue deadLetterQueue) {
-            super(deadLetterQueue);
+            super(deadLetterQueue, new EventEngineMetrics());
         }
 
         @Override
@@ -71,7 +72,7 @@ class RetryingEventHandlerTest {
         long delayMillis = 1L;
 
         RetryingEventHandler retrying =
-                new RetryingEventHandler(delegate, dlqHandler, maxAttempts, delayMillis);
+                new RetryingEventHandler(delegate, dlqHandler, maxAttempts, delayMillis, new EventEngineMetrics());
 
         Event event = Event.of(EventType.LOG, "payload");
 
@@ -97,7 +98,7 @@ class RetryingEventHandlerTest {
         long delayMillis = 1L;
 
         RetryingEventHandler retrying =
-                new RetryingEventHandler(delegate, dlqHandler, maxAttempts, delayMillis);
+                new RetryingEventHandler(delegate, dlqHandler, maxAttempts, delayMillis, new EventEngineMetrics());
 
         Event event = Event.of(EventType.ALERT, "critical");
 

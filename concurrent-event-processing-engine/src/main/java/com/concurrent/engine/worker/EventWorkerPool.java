@@ -1,6 +1,7 @@
 package com.concurrent.engine.worker;
 
 import com.concurrent.engine.events.EventHandler;
+import com.concurrent.engine.metrics.EventEngineMetrics;
 import com.concurrent.engine.queue.EventQueue;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +18,13 @@ public class EventWorkerPool {
     private final EventHandler handler;
     private final String poolName;
     private final AtomicBoolean running;
+    private final EventEngineMetrics metrics;
 
     public EventWorkerPool(int workerCount,
                            EventQueue eventQueue,
                            EventHandler handler,
-                           String poolName)
+                           String poolName,
+                           EventEngineMetrics metrics)
     {
         this.workerCount = workerCount;
         this.eventQueue = eventQueue;
@@ -31,6 +34,7 @@ public class EventWorkerPool {
         this.running.set(false);
         this.executor = Executors.newFixedThreadPool(workerCount);
         this.workers = new ArrayList<>();
+        this.metrics = metrics;
     }
 
     public synchronized void start(){
@@ -39,7 +43,7 @@ public class EventWorkerPool {
             return;
         }
         for (int i = 0; i < workerCount; i++) {
-            EventWorker eventWorker = new EventWorker(eventQueue, handler, poolName + "-worker-" + i);
+            EventWorker eventWorker = new EventWorker(eventQueue, handler, poolName + "-worker-" + i, metrics);
             workers.add(eventWorker);
             executor.submit(eventWorker);
         }
